@@ -28,7 +28,7 @@ agent_created: true
 | MariaDB | `pymysql` | `pip install pymysql` | ✅ 全部功能 |
 | PostgreSQL | `psycopg2` | `pip install psycopg2-binary` | ✅ 全部功能 |
 
-**默认配置**：dev 环境开箱自带一个 `sqlite_test` 内存数据库，无需安装任何依赖即可测试。
+**默认配置**：dev 环境开箱自带 `sqlite_test`（SQLite 测试库，含示例数据），无需安装任何依赖即可测试。
 
 ## 多环境架构
 
@@ -42,6 +42,17 @@ agent_created: true
 
 默认环境为 `dev`，可通过环境变量 `DB_QUERY_DEFAULT_ENV=test` 修改。
 
+### 配置目录（跨平台）
+
+| 系统 | 路径 |
+|------|------|
+| macOS | `~/Library/Application Support/dbq/` |
+| Linux | `~/.config/dbq/` |
+| Windows | `%APPDATA%\dbq\` |
+
+以下统一用 `{CONFIG_DIR}` 指代。
+
+
 ### 首次配置
 
 ```bash
@@ -49,9 +60,9 @@ agent_created: true
 python scripts/query.py --init-config
 
 # 2. 编辑填入各环境的 host / user / database
-vim assets/connections.dev.yaml
+vim {CONFIG_DIR}/connections.dev.yaml
 # Prod 建议额外 chmod 600 (--init-config 已自动设置):
-chmod 600 assets/connections.prod.yaml
+chmod 600 {CONFIG_DIR}/connections.prod.yaml
 
 # 3. 密码 (三选一，按优先级)
 #    a) Keychain (推荐):
@@ -59,7 +70,7 @@ python scripts/query.py --keychain-set recharge_db --env dev
 python scripts/query.py --keychain-set recharge_db --env test
 python scripts/query.py --keychain-set recharge_db --env prod
 #    b) .env 文件 (--init-config 已生成):
-# 编辑 assets/.env 填入 DB_PWD_DEV_RECHARGE_DB=xxx 等
+# 编辑 {CONFIG_DIR}/.env 填入 DB_PWD_DEV_RECHARGE_DB=xxx 等
 #    c) 环境变量: export DB_PWD_DEV_RECHARGE_DB=xxx
 ```
 
@@ -77,7 +88,7 @@ Keychain 条目格式：`service=dbq/{env}/{alias}`，例如 `dbq/dev/recharge_d
 
 ### 🔒 安全红线
 
-- **永远不要用 Read 工具直接读取 `assets/connections*.yaml` 或 `assets/.env`。**
+- **永远不要用 Read 工具直接读取 `{CONFIG_DIR}/connections*.yaml` 或 `{CONFIG_DIR}/.env`。**
 - 所有操作（查询、列表、查看配置）一律通过 `scripts/query.py` 脚本执行。
 - 要查看已配置连接 → `python scripts/query.py --list`
 - 要查看数据库表 → `python scripts/query.py --env dev <别名> --show`
@@ -205,23 +216,23 @@ prod        recharge_db           mysql       10.19.xx.xx         3306     recha
 - **无 WHERE 保护**：DELETE/UPDATE 无 WHERE 直接拒绝
 - **确认提示**：prod 环境写操作强制交互确认（`DB_QUERY_ASSUME_YES=1` 跳过）
 - 密码不存储在任何配置文件中
-- **严禁将 `assets/connections*.yaml` 或 `assets/.env` 读入 AI 上下文**
-- **严禁删除 assets/ 下的任何 .yaml 或 .env 文件**（用户配置文件，`rm -f` 一律禁止）
-- **修改 assets/ 下任何用户配置文件前必须先备份**：`cp file.yaml file.yaml.bak-$(date +%Y%m%d-%H%M%S)`，再执行修改
+- **严禁将 `{CONFIG_DIR}/connections*.yaml` 或 `{CONFIG_DIR}/.env` 读入 AI 上下文**
+- **严禁删除 {CONFIG_DIR}/ 下的任何 .yaml 或 .env 文件**（用户配置文件，`rm -f` 一律禁止）
+- **修改 {CONFIG_DIR}/ 下任何用户配置文件前必须先备份**：`cp file.yaml file.yaml.bak-$(date +%Y%m%d-%H%M%S)`，再执行修改
 - **严禁用 Write 工具创建/覆盖已存在的用户配置文件**——如果文件已存在，只允许 Edit 追加
-- 清理操作仅限于 `/tmp`、`tempfile` 创建的临时目录，绝不触碰 `assets/`
+- 清理操作仅限于 `/tmp`、`tempfile` 创建的临时目录，绝不触碰 `{CONFIG_DIR}/`
 
 ### 写操作配置示例
 
 ```yaml
-# assets/connections.dev.yaml
+# {CONFIG_DIR}/connections.dev.yaml
 settings:
   readonly_mode: false         # 环境级：整个 dev 环境允许 DML
 
 connections:
   sqlite_test:
     type: sqlite
-    path: ":memory:"
+    path: "{CONFIG_DIR}/sqlite_test.db"
     readonly: false            # 连接级：此连接允许 DML
 
   prod_readonly:
