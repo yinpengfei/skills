@@ -13,7 +13,7 @@ A universal **database CLI tool** / **database skill** that lets **Claude Code**
 | MariaDB | `pymysql` | `pip install pymysql` | ✅ Full support |
 | PostgreSQL | `psycopg2` | `pip install psycopg2-binary` | ✅ Full support |
 
-**Works out of the box**: dev environment ships with a `sqlite_test` file-based database config — test everything with zero dependencies.
+**Works out of the box**: `--init-config` auto-generates a SQLite test database + config examples for all four databases (SQLite/MySQL/PostgreSQL/MariaDB) — test everything with zero dependencies.
 
 ## Supported AI Assistants
 
@@ -69,11 +69,11 @@ pip install psycopg2-binary
 ### 2. Configure Connections
 
 ```bash
-# Generate config templates (safe to re-run, skips existing)
+# Generate config templates + SQLite test DB (safe to re-run, skips existing)
 python3 scripts/query.py --init-config
 
 # Edit with your host / user / database
-vim assets/connections.dev.yaml
+vim ~/.config/dbq/connections.dev.yaml
 ```
 
 Example `connections.dev.yaml`:
@@ -96,17 +96,19 @@ connections:
 
   sqlite_test:               # Zero-dependency test connection
     type: sqlite
-    path: /tmp/test.db
+    path: ~/.config/dbq/sqlite_test.db
     readonly: false
     allow_ddl: true
 ```
+
+> Config directory is `~/.config/dbq/` on all platforms. `--init-config` generates examples for all four database types.
 
 ### 3. Configure Passwords (choose one)
 
 | Method | Command | Security |
 |--------|---------|----------|
 | **A. Keychain** | `python3 scripts/query.py --keychain-set my_db --env dev` | ⭐⭐⭐ System-level encryption |
-| **B. .env file** | `echo "MY_DB_PASS=xxx" >> assets/.env` | ⭐⭐ Local file |
+| **B. .env file** | `echo "MY_DB_PASS=xxx" >> ~/.config/dbq/.env` | ⭐⭐ Local file |
 | **C. Env var** | `export MY_DB_PASS=xxx` | ⭐ CI/CD injection |
 
 ### 4. Verify Connection
@@ -262,27 +264,31 @@ Environment Variables:
 ## Directory Structure
 
 ```
-dbq/
-├── SKILL.md                           # WorkBuddy skill entry
-├── README.md                          # Chinese docs (default on GitHub)
-├── README_EN.md                       # English docs
+dbq/                                  # Skill directory
+├── SKILL.md                          # WorkBuddy skill entry
+├── README.md                         # Chinese docs (default on GitHub)
+├── README_EN.md                      # English docs
 ├── scripts/
-│   ├── query.py                       # Main script
-│   └── test.py                        # Unit tests (no DB required)
-├── assets/
-│   ├── connections.dev.yaml           # Dev default config (with sqlite_test) ✅ committed
-│   ├── connections.dev.yaml.example   # Dev template ✅ committed
-│   ├── connections.test.yaml.example  # Test template ✅ committed
-│   ├── connections.prod.yaml.example  # Prod template ✅ committed
-│   ├── .env.example                   # Password template ✅ committed
-│   ├── connections.test.yaml          # ❌ Local config, NOT committed
-│   ├── connections.prod.yaml          # ❌ Local config, NOT committed
-│   └── .env                           # ❌ Password file, NOT committed
+│   ├── query.py                      # Main script
+│   ├── db_config.py                  # Config management (paths/passwords/templates)
+│   ├── db_core.py                    # Drivers/connections/query execution
+│   ├── db_guard.py                   # SQL validation/classification/permissions
+│   └── test.py                       # Unit tests (no DB required)
 ├── references/
-│   └── drivers.md                     # Driver installation guide
+│   └── drivers.md                    # Driver installation guide
 └── logs/                              # ❌ Query logs, NOT committed
     └── YYYY-MM-DD.log
+
+~/.config/dbq/                        # Config directory (unified on all platforms)
+├── connections.dev.yaml              # Dev config (with sqlite_test + all 4 DB examples)
+├── connections.test.yaml             # Test config
+├── connections.prod.yaml             # Prod config (recommend chmod 600)
+├── .env                              # ❌ Password file, NOT committed
+├── sqlite_test.db                    # SQLite test DB (auto-created by --init-config)
+└── logs/                             # Query logs
 ```
+
+> `--init-config` generates config files in `~/.config/dbq/`, not in the skill directory.
 
 ## Running Tests
 
@@ -297,7 +303,7 @@ Test coverage: YAML loading, `${VAR}` placeholder resolution, SQL classification
 
 ## Security
 
-- `assets/connections*.yaml` (those with passwords) and `assets/.env` are in `.gitignore` — **never committed**
+- `~/.config/dbq/connections*.yaml` (those with passwords) and `~/.config/dbq/.env` are outside the repo — **never committed**
 - Passwords never stored in YAML; resolved at runtime via Keychain / .env / env vars
 - **4-Tier Operation Classification**:
   - READ (SELECT/SHOW/DESCRIBE/EXPLAIN) — always allowed
@@ -307,7 +313,7 @@ Test coverage: YAML loading, `${VAR}` placeholder resolution, SQL classification
 - **No-WHERE Protection**: DELETE/UPDATE without WHERE are rejected. Full-table ops require `WHERE 1=1`
 - **Prod Confirmation**: Write operations on prod require interactive confirmation
 - Query logs stored locally in `logs/`, never uploaded
-- **AI agents must NOT directly read `assets/connections*.yaml` or `assets/.env`** — passwords injected at runtime via env vars
+- **AI agents must NOT directly read `~/.config/dbq/connections*.yaml` or `~/.config/dbq/.env`** — passwords injected at runtime via env vars
 
 ## License
 

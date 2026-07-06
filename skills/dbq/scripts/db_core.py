@@ -199,7 +199,7 @@ def list_tables_with_info(db_alias: str, env: str,
 
     if db_type in ("mysql", "mariadb"):
         sql = (
-            "SELECT TABLE_NAME, TABLE_ROWS, TABLE_COMMENT "
+            "SELECT TABLE_NAME AS `Table`, TABLE_ROWS AS `Rows`, TABLE_COMMENT AS `Comment` "
             "FROM information_schema.TABLES "
             "WHERE TABLE_SCHEMA = DATABASE() "
             "ORDER BY TABLE_NAME"
@@ -207,9 +207,9 @@ def list_tables_with_info(db_alias: str, env: str,
     elif db_type in ("postgresql", "postgres"):
         sql = (
             "SELECT "
-            "  t.table_name, "
-            "  COALESCE(c.reltuples::bigint, 0), "
-            "  pg_catalog.obj_description(c.oid) "
+            "  t.table_name AS \"Table\", "
+            "  COALESCE(c.reltuples::bigint, 0) AS \"Rows\", "
+            "  pg_catalog.obj_description(c.oid) AS \"Comment\" "
             "FROM information_schema.tables t "
             "LEFT JOIN pg_class c ON c.relname = t.table_name "
             "WHERE t.table_schema = 'public' "
@@ -234,6 +234,9 @@ def list_tables_with_info(db_alias: str, env: str,
             rows.append((t_name, row_count, ""))
         columns = ["Table", "Rows", "Comment"]
         return columns, rows
+
+    # MySQL/MariaDB/PostgreSQL: 执行 SQL 并返回
+    return execute_query(db_alias, sql, env, config_override, _conn=_conn)
 
 
 def show_create_table(db_alias: str, table_name: str, env: str,

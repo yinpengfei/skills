@@ -49,10 +49,13 @@ _CONFIG_TEMPLATES = {
 #
 # 已包含开箱即用的测试连接:
 #   sqlite_test — SQLite 测试库（无需安装任何依赖）
-#   mysql        — 本机 MySQL（无密码，需先安装 MySQL 并启动服务）
+#
+# 其他数据库需要先安装驱动:
+#   MySQL/MariaDB: pip install pymysql
+#   PostgreSQL:    pip install psycopg2-binary
 #
 # 查询: python scripts/query.py sqlite_test "SELECT 1"
-# 查询: python scripts/query.py mysql "SELECT 1"  （需先配置密码或改为无密码）
+# 查询: python scripts/query.py mysql "SELECT 1"  （需先配置连接并取消注释）
 
 connections:
   # ─── SQLite 测试库（开箱即用，无需额外依赖）─────────
@@ -61,16 +64,47 @@ connections:
     path: "{_config_dir_display}/sqlite_test.db"
     readonly: false
 
-  # ─── 本机 MySQL（无密码，需先 brew install mysql && brew services start mysql）──
-  mysql:
-    type: mysql
-    host: 127.0.0.1
-    port: 3306
-    user: root
-    database: mysql
-    readonly: true
-  # 无密码时取消下面一行的注释（MySQL 8+ 默认有密码，需先设置）:
-  # password: ""
+  # ─── MySQL ─────────────────────────────────────────
+  # 需要安装: pip install pymysql
+  # mysql:
+  #   type: mysql
+  #   host: 127.0.0.1
+  #   port: 3306
+  #   user: root
+  #   password: ${{MYSQL_PASS}}
+  #   database: mysql
+  #   charset: utf8mb4
+  #   connect_timeout: 10
+  #   readonly: true
+
+  # ─── PostgreSQL ──────────────────────────────────────
+  # 需要安装: pip install psycopg2-binary
+  # pg_local:
+  #   type: postgresql
+  #   host: 127.0.0.1
+  #   port: 5432
+  #   user: postgres
+  #   password: ${{PG_PASS}}
+  #   database: postgres
+  #   charset: utf8
+  #   connect_timeout: 10
+  #   readonly: true
+  #   # PostgreSQL 特有参数:
+  #   # sslmode: prefer  # disable|allow|prefer|require|verify-ca|verify-full
+
+  # ─── MariaDB ────────────────────────────────────────
+  # 需要安装: pip install pymysql （与 MySQL 共用驱动）
+  #   MariaDB 是 MySQL 的分支，连接参数与 MySQL 完全兼容
+  # mariadb_local:
+  #   type: mariadb
+  #   host: 127.0.0.1
+  #   port: 3306
+  #   user: root
+  #   password: ${{MARIADB_PASS}}
+  #   database: mysql
+  #   charset: utf8mb4
+  #   connect_timeout: 10
+  #   readonly: true
 
   # ─── 示例：多库共享密码（推荐） ──
   # recharge_db:

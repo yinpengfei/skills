@@ -28,7 +28,7 @@ agent_created: true
 | MariaDB | `pymysql` | `pip install pymysql` | ✅ 全部功能 |
 | PostgreSQL | `psycopg2` | `pip install psycopg2-binary` | ✅ 全部功能 |
 
-**默认配置**：dev 环境开箱自带 `sqlite_test`（SQLite 测试库，含示例数据），无需安装任何依赖即可测试。
+**默认配置**：dev 环境开箱自带 `sqlite_test`（SQLite 测试库，含示例数据），无需安装任何依赖即可测试。`--init-config` 生成的 `connections.dev.yaml` 包含全部四种数据库（SQLite/MySQL/PostgreSQL/MariaDB）的配置示例，取消注释即可使用。
 
 ## 多环境架构
 

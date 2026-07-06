@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""dbq CLI 入口 —— 多环境 SQL 查询 / 写入工具 (MySQL / PostgreSQL / SQLite)。
+"""dbq CLI 入口 —— 多环境 SQL 查询 / 写入工具 (MySQL / PostgreSQL / SQLite / MariaDB)。
 
 用法:
     python query.py <db_alias> "<SQL>"                              # 默认 dev
@@ -230,7 +230,7 @@ def _handle_keychain_get(alias: str, env: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="数据库查询工具 —— 多环境 SQL 查询/写入 (MySQL/PostgreSQL/SQLite)",
+        description="数据库查询工具 —— 多环境 SQL 查询/写入 (MySQL/PostgreSQL/SQLite/MariaDB)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
@@ -252,6 +252,8 @@ def main():
   python query.py mydb --ddl user_info                      # 查看 DDL
   python query.py mydb --ping                                    # 连接测试
   python query.py --keychain-set mydb --env prod               # 存密码
+
+配置目录: ~/.config/dbq/  (全平台统一)
         """,
     )
     parser.add_argument("db_alias", nargs="?", help="数据库别名")
@@ -322,7 +324,7 @@ def main():
     )
     parser.add_argument(
         "--init-config", action="store_true",
-        help="生成配置模板文件到 assets/ 目录（已存在则跳过）"
+        help="生成配置模板 + SQLite 测试库到 ~/.config/dbq/（已存在则跳过）"
     )
 
     args = parser.parse_args()

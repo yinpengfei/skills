@@ -13,7 +13,7 @@
 | MariaDB | `pymysql` | `pip install pymysql` | ✅ 全部功能 |
 | PostgreSQL | `psycopg2` | `pip install psycopg2-binary` | ✅ 全部功能 |
 
-**开箱即用**：dev 环境自带 `sqlite_test` 文件数据库配置，无需安装任何依赖即可测试全部功能。
+**开箱即用**：`--init-config` 自动生成 SQLite 测试库 + 四种数据库（SQLite/MySQL/PostgreSQL/MariaDB）配置示例，无需安装任何依赖即可测试。
 
 ## 支持的 AI 助手
 
@@ -69,11 +69,11 @@ pip install psycopg2-binary
 ### 2. 配置连接
 
 ```bash
-# 生成配置模板（已存在则跳过，安全可重复执行）
+# 生成配置模板 + SQLite 测试库（已存在则跳过，安全可重复执行）
 python3 scripts/query.py --init-config
 
 # 编辑填入你的 host / user / database
-vim assets/connections.dev.yaml
+vim ~/.config/dbq/connections.dev.yaml
 ```
 
 `connections.dev.yaml` 示例：
@@ -96,17 +96,19 @@ connections:
 
   sqlite_test:               # 零依赖测试连接
     type: sqlite
-    path: /tmp/test.db
+    path: ~/.config/dbq/sqlite_test.db
     readonly: false
     allow_ddl: true
 ```
+
+> 配置目录全平台统一为 `~/.config/dbq/`，`--init-config` 生成的配置包含全部四种数据库示例。
 
 ### 3. 配置密码（三选一，推荐 Keychain）
 
 | 方式 | 命令 | 安全性 |
 |------|------|--------|
 | **A. Keychain** | `python3 scripts/query.py --keychain-set my_db --env dev` | ⭐⭐⭐ 系统级加密 |
-| **B. .env 文件** | `echo "MY_DB_PASS=xxx" >> assets/.env` | ⭐⭐ 本地文件 |
+| **B. .env 文件** | `echo "MY_DB_PASS=xxx" >> ~/.config/dbq/.env` | ⭐⭐ 本地文件 |
 | **C. 环境变量** | `export MY_DB_PASS=xxx` | ⭐ CI/CD 注入 |
 
 ### 4. 验证连接
@@ -264,27 +266,31 @@ dbq my_db -d users
 ## 目录结构
 
 ```
-dbq/
-├── SKILL.md                           # WorkBuddy 技能入口
-├── README.md                          # 中文文档（GitHub 默认展示）
-├── README_EN.md                       # English docs
+dbq/                                  # Skill 目录
+├── SKILL.md                          # WorkBuddy 技能入口
+├── README.md                         # 中文文档（GitHub 默认展示）
+├── README_EN.md                      # English docs
 ├── scripts/
-│   ├── query.py                       # 主脚本
-│   └── test.py                        # 单元测试（无需数据库）
-├── assets/
-│   ├── connections.dev.yaml           # 开发默认配置（含 sqlite_test） ✅ 已提交
-│   ├── connections.dev.yaml.example   # 开发环境模板 ✅ 已提交
-│   ├── connections.test.yaml.example  # 测试环境模板 ✅ 已提交
-│   ├── connections.prod.yaml.example  # 生产环境模板 ✅ 已提交
-│   ├── .env.example                   # 密码模板 ✅ 已提交
-│   ├── connections.test.yaml          # ❌ 本地配置，不提交 Git
-│   ├── connections.prod.yaml          # ❌ 本地配置，不提交 Git
-│   └── .env                           # ❌ 密码文件，不提交 Git
+│   ├── query.py                      # 主脚本
+│   ├── db_config.py                  # 配置管理（路径/密码/模板）
+│   ├── db_core.py                    # 驱动/连接/查询执行
+│   ├── db_guard.py                   # SQL 校验/分级/权限
+│   └── test.py                       # 单元测试（无需数据库）
 ├── references/
-│   └── drivers.md                     # 驱动安装说明
-└── logs/                              # ❌ 查询日志，不提交 Git
+│   └── drivers.md                    # 驱动安装说明
+└── logs/                             # ❌ 查询日志，不提交 Git
     └── YYYY-MM-DD.log
+
+~/.config/dbq/                        # 配置目录（全平台统一）
+├── connections.dev.yaml              # 开发环境配置（含 sqlite_test + 四种数据库示例）
+├── connections.test.yaml             # 测试环境配置
+├── connections.prod.yaml             # 生产环境配置（建议 chmod 600）
+├── .env                              # ❌ 密码文件，不提交 Git
+├── sqlite_test.db                    # SQLite 测试库（--init-config 自动创建）
+└── logs/                             # 查询日志
 ```
+
+> `--init-config` 生成的配置文件位于 `~/.config/dbq/`，不在 skill 目录中。
 
 ## 运行测试
 
@@ -299,7 +305,7 @@ python3 scripts/test.py
 
 ## 安全说明
 
-- `assets/connections*.yaml`（含密码的）和 `assets/.env` 已加入 `.gitignore`，**绝不会被提交**
+- `~/.config/dbq/connections*.yaml`（含密码的）和 `~/.config/dbq/.env` 不会被提交到 Git（位于用户目录外）
 - 密码不存储在 YAML 中，通过 Keychain / .env / 环境变量运行时注入
 - **四级操作分级**：
   - READ（SELECT/SHOW/DESCRIBE/EXPLAIN）-- 始终允许
@@ -309,7 +315,7 @@ python3 scripts/test.py
 - **无 WHERE 保护**：DELETE/UPDATE 无 WHERE 直接拒绝，全表操作需 `WHERE 1=1`
 - **prod 确认**：生产环境写操作强制交互确认
 - 查询日志仅存本地 `logs/` 目录，不上传
-- **严禁 AI 直接读取 `assets/connections*.yaml` 或 `assets/.env`** —— 密码通过运行时环境变量注入
+- **严禁 AI 直接读取 `~/.config/dbq/connections*.yaml` 或 `~/.config/dbq/.env`** —— 密码通过运行时环境变量注入
 
 ## License
 
