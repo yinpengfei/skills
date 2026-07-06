@@ -1,0 +1,53 @@
+# 开发环境数据库连接配置
+# ⚠️  三种密码管理方式（值字段支持 ${VAR} 占位符）:
+#   1. 不写 password 字段 → 通过 Keychain/.env/环境变量 约定查找 DB_PWD_DEV_{ALIAS}
+#   2. password: ${MY_SHARED_PASS} → 从 assets/.env 或环境变量中解析（多库共用推荐）
+#   3. password: ${ENV_VAR} → 直接引用父进程环境变量
+#
+# 复制: cp connections.dev.yaml.example connections.dev.yaml
+# 查询: python scripts/query.py sqlite_test "SELECT 1"      (dev 是默认环境)
+#
+# 写操作权限:
+#   readonly: false   → 允许 INSERT/UPDATE/DELETE/REPLACE
+#   allow_ddl: true   → 允许 ALTER/CREATE/DROP/TRUNCATE
+#   不写默认只读
+
+# 全局设置（可选）
+# settings:
+#   readonly_mode: false    # 整个环境默认允许 DML
+#   allow_ddl: false        # 整个环境默认禁止 DDL
+
+connections:
+  # --- SQLite 默认测试连接（零依赖，开箱即用）─────────
+  sqlite_test:
+    type: sqlite
+    path: ":memory:"          # 也可用文件路径: ./test.db
+    readonly: false           # 测试连接，允许写操作
+
+  # --- 方式 1: 不写 password，靠脚本自动查找 ───
+  # recharge_db:
+  #   type: mysql
+  #   host: 10.18.122.60
+  #   port: 3306
+  #   user: readonly_dev
+  #   database: recharge
+  #   charset: utf8mb4
+  #   connect_timeout: 10
+  #   readonly: true           # 只读（默认值，可不写）
+
+  # --- 方式 2: ${VAR} 占位，多库共享密码（推荐） ───
+  # recharge_db:
+  #   type: mysql
+  #   host: 10.18.122.60
+  #   port: 3306
+  #   user: readonly
+  #   password: ${PWD_DEV}
+  #   database: recharge
+  #
+  # pay_db:
+  #   type: mysql
+  #   host: 10.18.122.60
+  #   port: 3306
+  #   user: readonly
+  #   password: ${PWD_DEV}          # 同一个变量，共用一个密码
+  #   database: pay

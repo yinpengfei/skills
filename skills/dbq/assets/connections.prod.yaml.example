@@ -1,0 +1,19 @@
+# 生产环境数据库连接配置（独立文件，建议 chmod 600）
+# 用法同 connections.dev.yaml.example
+
+connections:
+  # recharge_db:
+  #   type: mysql
+  #   host: 10.19.xx.xx
+  #   port: 3306
+  #   user: readonly
+  #   password: ${PWD_PROD}          # 多库共用一个变量
+  #   database: recharge
+  #
+  # pay_db:
+  #   type: mysql
+  #   host: 10.19.xx.xx
+  #   port: 3306
+  #   user: readonly
+  #   password: ${PWD_PROD}
+  #   database: pay

@@ -1,0 +1,19 @@
+# 测试环境数据库连接配置
+# 用法同 connections.dev.yaml.example
+
+connections:
+  # recharge_db:
+  #   type: mysql
+  #   host: 10.18.122.61
+  #   port: 3306
+  #   user: readonly
+  #   password: ${PWD_TEST}
+  #   database: recharge
+  #
+  # pay_db:
+  #   type: mysql
+  #   host: 10.18.122.61
+  #   port: 3306
+  #   user: readonly
+  #   password: ${PWD_TEST}
+  #   database: pay
