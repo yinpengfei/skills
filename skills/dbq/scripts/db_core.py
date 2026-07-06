@@ -216,16 +216,24 @@ def list_tables_with_info(db_alias: str, env: str,
             "ORDER BY t.table_name"
         )
     elif db_type in ("sqlite", "sqlite3"):
-        sql = (
-            "SELECT name, 0, '' FROM sqlite_master "
+        # sqlite_master 不含行数，需逐表 COUNT
+        tables_sql = (
+            "SELECT name FROM sqlite_master "
             "WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
         )
-    else:
-        raise ValueError(f"不支持的数据库类型: {db_type}")
-
-    columns, rows = execute_query(db_alias, sql, env, config_override, _conn=_conn)
-    columns = ["Table", "Rows", "Comment"]
-    return columns, rows
+        _, t_rows = execute_query(db_alias, tables_sql, env, config_override, _conn=_conn)
+        rows = []
+        for (t_name,) in t_rows:
+            try:
+                _, cnt_rows = execute_query(
+                    db_alias, f"SELECT COUNT(*) FROM {t_name}", env, config_override, _conn=_conn,
+                )
+                row_count = cnt_rows[0][0] if cnt_rows else 0
+            except Exception:
+                row_count = -1  # 无权限或报错
+            rows.append((t_name, row_count, ""))
+        columns = ["Table", "Rows", "Comment"]
+        return columns, rows
 
 
 def show_create_table(db_alias: str, table_name: str, env: str,
