@@ -62,16 +62,15 @@ connections:
     readonly: false
 
   # ─── 本机 MySQL（无密码，需先 brew install mysql && brew services start mysql）──
-  # mysql:
-  #   type: mysql
-  #   host: 127.0.0.1
-  #   port: 3306
-  #   user: root
-  #   database: mysql
-  #   readonly: true
-  #
+  mysql:
+    type: mysql
+    host: 127.0.0.1
+    port: 3306
+    user: root
+    database: mysql
+    readonly: true
   # 无密码时取消下面一行的注释（MySQL 8+ 默认有密码，需先设置）:
-  #   password: ""
+  # password: ""
 
   # ─── 示例：多库共享密码（推荐） ──
   # recharge_db:
