@@ -13,18 +13,15 @@ from pathlib import Path
 
 # ── 跨平台配置目录 ──────────────────────────────────────────
 #
-# Windows: %APPDATA%\dbq\   (C:\Users\<user>\AppData\Roaming\dbq)
-# macOS:   ~/.config/dbq/     (跟 Linux 保持一致)
-# Linux:   ~/.config/dbq/
+# 全平台统一: ~/.config/dbq/
+#   macOS:   /Users/<user>/.config/dbq/
+#   Linux:   /home/<user>/.config/dbq/
+#   Windows: C:\Users\<user>\.config\dbq\
 #
 
 def _get_config_dir() -> Path:
-    """返回跨平台的 dbq 配置目录。"""
-    if sys.platform == "win32":
-        base = Path(os.environ.get("APPDATA", Path.home()))
-    else:
-        base = Path.home() / ".config"
-    return base / "dbq"
+    """返回 dbq 配置目录，全平台统一为 ~/.config/dbq/"""
+    return Path.home() / ".config" / "dbq"
 
 
 # ── 路径常量 ─────────────────────────────────────────

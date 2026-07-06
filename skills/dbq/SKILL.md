@@ -42,12 +42,15 @@ agent_created: true
 
 默认环境为 `dev`，可通过环境变量 `DB_QUERY_DEFAULT_ENV=test` 修改。
 
-### 配置目录（跨平台）
+### 配置目录（全平台统一）
 
-| 系统 | 路径 |
-|------|------|
-| macOS / Linux | `~/.config/dbq/` |
-| Windows | `%APPDATA%\dbq\` |
+`~/.config/dbq/`
+
+| 系统 | 实际路径 |
+|------|-----------|
+| macOS | `/Users/<user>/.config/dbq/` |
+| Linux | `/home/<user>/.config/dbq/` |
+| Windows | `C:\Users\<user>\.config\dbq\` |
 
 以下统一用 `{CONFIG_DIR}` 指代。
 
