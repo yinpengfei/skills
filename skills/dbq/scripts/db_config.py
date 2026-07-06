@@ -14,7 +14,7 @@ from pathlib import Path
 # ── 跨平台配置目录 ──────────────────────────────────────────
 #
 # Windows: %APPDATA%\dbq\   (C:\Users\<user>\AppData\Roaming\dbq)
-# macOS:   ~/Library/Application Support/dbq/
+# macOS:   ~/.config/dbq/     (跟 Linux 保持一致)
 # Linux:   ~/.config/dbq/
 #
 
@@ -22,8 +22,6 @@ def _get_config_dir() -> Path:
     """返回跨平台的 dbq 配置目录。"""
     if sys.platform == "win32":
         base = Path(os.environ.get("APPDATA", Path.home()))
-    elif sys.platform == "darwin":
-        base = Path.home() / "Library" / "Application Support"
     else:
         base = Path.home() / ".config"
     return base / "dbq"

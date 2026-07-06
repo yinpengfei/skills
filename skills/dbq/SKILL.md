@@ -46,8 +46,7 @@ agent_created: true
 
 | 系统 | 路径 |
 |------|------|
-| macOS | `~/Library/Application Support/dbq/` |
-| Linux | `~/.config/dbq/` |
+| macOS / Linux | `~/.config/dbq/` |
 | Windows | `%APPDATA%\dbq\` |
 
 以下统一用 `{CONFIG_DIR}` 指代。
