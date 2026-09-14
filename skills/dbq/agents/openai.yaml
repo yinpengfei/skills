@@ -1,0 +1,4 @@
+interface:
+  display_name: "dbq Database Assistant"
+  short_description: "Secure database queries, schema inspection, and DDL"
+  default_prompt: "Use $dbq to inspect the database schema and run a safe read-only query."
